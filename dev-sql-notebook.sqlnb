@@ -1,0 +1,44 @@
+cells:
+  - kind: 2
+    value: |-
+      -- root user priveleges
+
+      -- 1. Create a new local developer account
+      CREATE USER dev_user IDENTIFIED BY "DevPassword123!";
+
+      -- 2. Allow the user to connect to the database
+      GRANT CONNECT TO dev_user;
+
+      -- 3. Allow the user to create database objects (tables, views, etc.)
+      GRANT RESOURCE TO dev_user;
+
+      -- 4. Give the user permission to store unlimited data in the tablespace
+      GRANT UNLIMITED TABLESPACE TO dev_user;
+    languageId: oracle-sql
+  - kind: 2
+    value: |-
+      -- Create a sample table
+      CREATE TABLE employees (
+          employee_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+          first_name  VARCHAR2(50),
+          last_name   VARCHAR2(50),
+          email       VARCHAR2(100),
+          hire_date   DATE DEFAULT SYSDATE
+      );
+
+      -- Insert sample records
+      INSERT INTO employees (first_name, last_name, email) 
+      VALUES ('John', 'Doe', 'john.doe@example.com');
+
+      INSERT INTO employees (first_name, last_name, email) 
+      VALUES ('Jane', 'Smith', 'jane.smith@example.com');
+
+      -- Save changes to the database
+      COMMIT;
+
+      -- Query the data
+      SELECT * FROM employees;
+    languageId: oracle-sql
+  - kind: 2
+    value: ""
+    languageId: oracle-sql
