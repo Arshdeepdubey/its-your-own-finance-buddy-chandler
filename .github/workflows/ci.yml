@@ -77,6 +77,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.CONFIG_REPO_PAT }}
-          repository: Arshdeepdubey/finance-config-repo
+          repository: Arshdeepdubey/config-of-our-finance-buddy-chandler
           event-type: update-image-tag
           client-payload: '{"image_tag": "${{ github.sha }}"}'
