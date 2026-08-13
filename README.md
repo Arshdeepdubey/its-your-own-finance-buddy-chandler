@@ -72,6 +72,85 @@ java -jar target/tech-1.0-SNAPSHOT.jar
 
 (Adjust commands to match actual `package.json` scripts and `pom.xml` artifact names.)
 
+## API Testing - Using curl
+
+Before testing, set the required environment variables:
+
+```bash
+export AWS_REGION=us-east-1
+export AWS_ACCESS_KEY_ID=AKIA****
+export AWS_SECRET_ACCESS_KEY=wFHx****
+```
+
+Then start the application:
+```bash
+mvn spring-boot:run
+```
+
+The application will be available at `http://localhost:8080`
+
+### Sample curl Commands for All REST APIs
+
+#### 1. Health Check
+```bash
+curl -X GET http://localhost:8080/
+```
+
+#### 2. Actuator Health
+```bash
+curl -X GET http://localhost:8080/actuator/health
+```
+
+#### 3. Create a Secret (POST)
+```bash
+curl -X POST http://localhost:8080/api/v1/secrets/createSecret \
+  -H "Content-Type: application/json" \
+  -d '{"name": "db_password", "value": "my_secret_password"}'
+```
+
+#### 4. Get a Secret (GET)
+```bash
+curl -X GET http://localhost:8080/api/v1/secrets/db_password
+```
+
+#### 5. Update a Secret (PUT)
+```bash
+curl -X PUT http://localhost:8080/api/v1/secrets/updateSecret \
+  -H "Content-Type: application/json" \
+  -d '{"name": "db_password", "value": "updated_password"}'
+```
+
+#### 6. Delete a Secret (DELETE)
+```bash
+curl -X DELETE http://localhost:8080/api/v1/secrets/db_password
+```
+
+### Testing Multiple Secrets
+
+Create multiple secrets:
+```bash
+curl -X POST http://localhost:8080/api/v1/secrets/createSecret \
+  -H "Content-Type: application/json" \
+  -d '{"name": "api_key", "value": "key_123456"}'
+
+curl -X POST http://localhost:8080/api/v1/secrets/createSecret \
+  -H "Content-Type: application/json" \
+  -d '{"name": "jwt_token", "value": "token_abcdef"}'
+```
+
+Retrieve secrets:
+```bash
+curl -X GET http://localhost:8080/api/v1/secrets/api_key
+curl -X GET http://localhost:8080/api/v1/secrets/jwt_token
+```
+
+Update secrets:
+```bash
+curl -X PUT http://localhost:8080/api/v1/secrets/updateSecret \
+  -H "Content-Type: application/json" \
+  -d '{"name": "api_key", "value": "key_updated_123"}'
+```
+
 ## Notes for contributors
 
 - Where to look first:
