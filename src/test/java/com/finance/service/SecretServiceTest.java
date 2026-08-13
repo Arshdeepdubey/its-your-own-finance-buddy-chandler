@@ -1,11 +1,12 @@
 package com.finance.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.finance.dto.Secretdto;
@@ -39,6 +40,27 @@ class SecretServiceTest {
         service.createSecret(dto);
 
         assertEquals("abc", service.getSecret("api-key"));
+    }
+
+    @Test
+    void shouldThrowHelpfulExceptionWhenAwsCredentialsAreMissing() {
+        SecretService service = new SecretService(fakeMissingCredentialsClient());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class, service::getSecrets);
+
+        assertTrue(exception.getMessage().contains("AWS credentials"));
+    }
+
+    private static SecretsManagerClient fakeMissingCredentialsClient() {
+        return (SecretsManagerClient) Proxy.newProxyInstance(
+            SecretsManagerClient.class.getClassLoader(),
+            new Class<?>[] { SecretsManagerClient.class },
+            (proxy, method, args) -> {
+                throw software.amazon.awssdk.core.exception.SdkClientException.builder()
+                    .message("Unable to load credentials from any of the providers in the chain")
+                    .build();
+            }
+        );
     }
 
     private static SecretsManagerClient fakeSecretsManagerClient() {

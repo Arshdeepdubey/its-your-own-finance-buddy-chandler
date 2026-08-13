@@ -1,12 +1,12 @@
 package com.finance.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,21 +21,24 @@ import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.DeleteSecretResponse;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.ListSecretsResponse;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry;
 
 class SecretControllerTest {
 
     @Test
-    void shouldReturnSecretWhenFetched() {
+    void shouldReturnAllSecretsWhenFetched() {
         SecretController controller = new SecretController(new SecretService(fakeSecretsManagerClient()));
 
-        ResponseEntity<Secretdto> response = controller.getSecret("db-password");
+        ResponseEntity<List<Secretdto>> response = controller.getSecrets();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("db-password", response.getBody().getName());
-        assertEquals("super-secret", response.getBody().getValue());
+        assertEquals(1, response.getBody().size());
+        assertEquals("db-password", response.getBody().get(0).getName());
+        assertEquals("super-secret", response.getBody().get(0).getValue());
     }
 
     @Test
@@ -78,6 +81,13 @@ class SecretControllerTest {
                 case "getSecretValue" -> {
                     GetSecretValueRequest request = (GetSecretValueRequest) args[0];
                     yield GetSecretValueResponse.builder().secretString(store.getOrDefault(request.secretId(), "")).build();
+                }
+                case "listSecrets" -> {
+                    yield ListSecretsResponse.builder()
+                        .secretList(store.entrySet().stream()
+                            .map(entry -> SecretListEntry.builder().name(entry.getKey()).build())
+                            .toList())
+                        .build();
                 }
                 case "createSecret" -> {
                     CreateSecretRequest request = (CreateSecretRequest) args[0];

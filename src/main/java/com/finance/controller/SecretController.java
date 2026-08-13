@@ -1,8 +1,12 @@
 package com.finance.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +22,7 @@ import com.finance.service.SecretService;
 
 
 @RestController
-@RequestMapping("/api/v1/secrets")
+@RequestMapping("/api/v1")
 public class SecretController {
     
     private final SecretService secretService;
@@ -27,10 +31,9 @@ public class SecretController {
         this.secretService = secretService;
     }
 
-    @GetMapping("/{name}")
-    public ResponseEntity<Secretdto> getSecret(@PathVariable String name) {
-        String value = secretService.getSecret(name);
-        return ResponseEntity.ok(new Secretdto(name, value));
+    @GetMapping("/getSecret")
+    public ResponseEntity<List<Secretdto>> getSecrets() {
+        return ResponseEntity.ok(secretService.getSecrets());
     }
 
     @PostMapping("/createSecret")
@@ -49,6 +52,12 @@ public class SecretController {
     public ResponseEntity<Void> deleteSecret(@PathVariable String name){
         secretService.deleteSecret(name);
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleAwsConfigurationError(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(Map.of("error", ex.getMessage()));
     }
     
 }
